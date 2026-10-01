@@ -1,0 +1,2612 @@
+{
+  "info": {
+    "name": "RepairHub API",
+    "description": "Generated from config/swagger.js — run `npm run docs:generate` to refresh.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "id",
+      "value": ""
+    },
+    {
+      "key": "jobId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "claimId",
+      "value": ""
+    },
+    {
+      "key": "technicianId",
+      "value": ""
+    },
+    {
+      "key": "reference",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register (customer | technician | service_center). Admins are seeded, never self",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "register"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Register (customer | technician | service_center). Admins are seeded, never self-registered",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ada Obi\",\n  \"email\": \"ada@example.com\",\n  \"phone\": \"08031234567\",\n  \"password\": \"password123\",\n  \"role\": \"customer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login → JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "login"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Login → JWT",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ada@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.data && j.data.token) { pm.collectionVariables.set('token', j.data.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Current user"
+          }
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "change-password"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Change password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"string\",\n  \"newPassword\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List users\n\nRoles: admin"
+          }
+        },
+        {
+          "name": "Get a user (self or admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Get a user (self or admin)"
+          }
+        },
+        {
+          "name": "Update name/phone (self or admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Update name/phone (self or admin)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"string\",\n  \"phone\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Deactivate account (self or admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Deactivate account (self or admin)"
+          }
+        },
+        {
+          "name": "Suspend / reactivate",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Suspend / reactivate\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {
+          "name": "My customer profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer-profiles/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer-profiles",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My customer profile\n\nRoles: customer"
+          }
+        },
+        {
+          "name": "Customer profile (owner/admin only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer-profiles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer-profiles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Customer profile (owner/admin only — holds home address)"
+          }
+        },
+        {
+          "name": "Update address / location / saved devices",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer-profiles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer-profiles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Update address / location / saved devices\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"12 Allen Ave, Ikeja\",\n  \"location\": {\n    \"lng\": 3.35,\n    \"lat\": 6.6\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Technicians",
+      "item": [
+        {
+          "name": "Search verified technicians",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "serviceCategoryId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "area",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lng",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lat",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "radiusKm",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Search verified technicians",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "My technician profile (incl. verification state)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My technician profile (incl. verification state)\n\nRoles: technician"
+          }
+        },
+        {
+          "name": "Verification queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                "pending"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Verification queue\n\nRoles: admin"
+          }
+        },
+        {
+          "name": "Public technician profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Public technician profile",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Update my profile\n\nRoles: technician",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"string\",\n  \"experienceYears\": 1,\n  \"serviceCategoryIds\": [],\n  \"services\": [],\n  \"serviceAreas\": [],\n  \"baseLocation\": {},\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Upload ID / certificates (multipart \"docs\")",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/:id/verification-docs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                ":id",
+                "verification-docs"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Upload ID / certificates (multipart \"docs\")\n\nRoles: technician",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "docs",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve / reject (approval needs ≥1 document)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/technician-profiles/:id/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician-profiles",
+                ":id",
+                "verify"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Approve / reject (approval needs ≥1 document)\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Centers",
+      "item": [
+        {
+          "name": "Search verified service centers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "serviceCategoryId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lng",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lat",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "radiusKm",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Search verified service centers",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "My service center",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My service center\n\nRoles: service_center"
+          }
+        },
+        {
+          "name": "Verification queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                "pending"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Verification queue\n\nRoles: admin"
+          }
+        },
+        {
+          "name": "Public service center profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Public service center profile",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Update business profile / hours / coverage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Update business profile / hours / coverage\n\nRoles: service_center",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"string\",\n  \"description\": \"string\",\n  \"address\": \"string\",\n  \"location\": {},\n  \"coverageRadiusKm\": 1,\n  \"workingHours\": {},\n  \"serviceCategoryIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Upload CAC / business documents (multipart \"docs\")",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id/verification-docs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id",
+                "verification-docs"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Upload CAC / business documents (multipart \"docs\")\n\nRoles: service_center",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "docs",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve / reject",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id",
+                "verify"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Approve / reject\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\",\n  \"feedback\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List my team",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id",
+                "team"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "List my team\n\nRoles: service_center"
+          }
+        },
+        {
+          "name": "Add a technician to my team by email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id",
+                "team"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Add a technician to my team by email\n\nRoles: service_center",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove a team member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-centers/:id/team/:technicianId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-centers",
+                ":id",
+                "team",
+                ":technicianId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                },
+                {
+                  "key": "technicianId",
+                  "value": "{{technicianId}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Remove a team member\n\nRoles: service_center"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List active categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/service-categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-categories"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "List active categories",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/service-categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-categories"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Create category\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"parentCategory\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update / deactivate category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/service-categories/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "service-categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Update / deactivate category\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"parentCategory\": \"string\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Repair Requests",
+      "item": [
+        {
+          "name": "Create request (multipart; media field \"media\", ≤6 files)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-requests"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Create request (multipart; media field \"media\", ≤6 files)\n\nRoles: customer",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "serviceCategoryId",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "itemType",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "problemDescription",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "brandModel",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "urgency",
+                  "type": "text",
+                  "value": "low"
+                },
+                {
+                  "key": "address",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "location",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customers: my requests. Providers: open job board. Admin: all",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-requests"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "serviceCategoryId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lng",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lat",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "radiusKm",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Customers: my requests. Providers: open job board. Admin: all"
+          }
+        },
+        {
+          "name": "Get a request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-requests/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-requests",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Get a request"
+          }
+        },
+        {
+          "name": "Cancel (owner, before booking)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-requests/:id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-requests",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Cancel (owner, before booking)\n\nRoles: customer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quotations",
+      "item": [
+        {
+          "name": "Submit a quotation (verified technician, or center naming technicianId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/quotations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quotations"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Submit a quotation (verified technician, or center naming technicianId)\n\nRoles: technician, service_center",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"repairRequestId\": \"<repairRequestId>\",\n  \"laborCost\": 10000,\n  \"partsCost\": 5000,\n  \"estimatedDays\": 2,\n  \"warrantyDays\": 30,\n  \"notes\": \"3-month screen warranty\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My quotations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotations/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quotations",
+                "mine"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My quotations\n\nRoles: technician, service_center"
+          }
+        },
+        {
+          "name": "Compare quotations (owner). sort=price|rating|eta|value; flags bestValue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotations/repair-request/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quotations",
+                "repair-request",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Compare quotations (owner). sort=price|rating|eta|value; flags bestValue\n\nRoles: customer, admin"
+          }
+        },
+        {
+          "name": "Accept a quotation (rejects the others)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotations/:id/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quotations",
+                ":id",
+                "accept"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Accept a quotation (rejects the others)\n\nRoles: customer"
+          }
+        },
+        {
+          "name": "Withdraw a pending quotation",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotations/:id/withdraw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quotations",
+                ":id",
+                "withdraw"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Withdraw a pending quotation\n\nRoles: technician, service_center"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Book an accepted quotation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Book an accepted quotation — also opens the repair job\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quotationId\": \"<quotationId>\",\n  \"scheduledAt\": \"2030-01-01T10:00:00Z\",\n  \"serviceMode\": \"dropoff\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My appointments"
+          }
+        },
+        {
+          "name": "Get appointment (participants)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Get appointment (participants)"
+          }
+        },
+        {
+          "name": "Reschedule (before work starts)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id/reschedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                ":id",
+                "reschedule"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Reschedule (before work starts)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledAt\": \"2026-09-29T23:51:14.597Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel before work starts",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/:id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                ":id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Cancel before work starts — held escrow is refunded to the wallet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Repair Jobs",
+      "item": [
+        {
+          "name": "My jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-jobs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-jobs"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "My jobs"
+          }
+        },
+        {
+          "name": "Job tracking detail (+ counterpart contact)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-jobs/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-jobs",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Job tracking detail (+ counterpart contact)"
+          }
+        },
+        {
+          "name": "Advance status (diagnosing → awaiting_parts → in_progress → quality_check → read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/repair-jobs/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-jobs",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Advance status (diagnosing → awaiting_parts → in_progress → quality_check → ready → completed; on_hold). Needs payment first\n\nRoles: technician, service_center",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"note\": \"Started repair\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Customer confirms satisfaction → releases escrow",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/repair-jobs/:id/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "repair-jobs",
+                ":id",
+                "confirm"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Customer confirms satisfaction → releases escrow\n\nRoles: customer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Pay for a job: paystack (checkout URL) | wallet | cash. Amount is taken from the",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "pay"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Pay for a job: paystack (checkout URL) | wallet | cash. Amount is taken from the job\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"repairJobId\": \"<repairJobId>\",\n  \"method\": \"paystack\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Fund my wallet via Paystack",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/topup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "topup"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Fund my wallet via Paystack\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify a payment after checkout redirect",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/verify/:reference",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "verify",
+                ":reference"
+              ],
+              "variable": [
+                {
+                  "key": "reference",
+                  "value": "{{reference}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Verify a payment after checkout redirect"
+          }
+        },
+        {
+          "name": "Paystack webhook (HMAC-SHA512 signed; set this URL in the Paystack dashboard)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/webhook/paystack",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "webhook",
+                "paystack"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Paystack webhook (HMAC-SHA512 signed; set this URL in the Paystack dashboard)",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"string\",\n  \"data\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My ledger",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "me"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "My ledger"
+          }
+        },
+        {
+          "name": "Ledger for a specific wallet (owner/admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/wallet/:walletId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions",
+                "wallet",
+                ":walletId"
+              ],
+              "variable": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Ledger for a specific wallet (owner/admin)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "My wallet (balance, commissionOwed, withdrawable)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallets",
+                "me"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "My wallet (balance, commissionOwed, withdrawable)"
+          }
+        },
+        {
+          "name": "Request a payout to a bank account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/withdraw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallets",
+                "withdraw"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Request a payout to a bank account\n\nRoles: technician, service_center",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 10000,\n  \"bankName\": \"GTBank\",\n  \"accountNumber\": \"0123456789\",\n  \"accountName\": \"Ada Obi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Wallet by user (owner/admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/:userId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallets",
+                ":userId"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Wallet by user (owner/admin)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Review a completed job (once)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Review a completed job (once)\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"repairJobId\": \"<repairJobId>\",\n  \"rating\": 5,\n  \"tags\": [\n    \"On time\",\n    \"Professional\"\n  ],\n  \"comment\": \"Great work\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reviews for a technician",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/technician/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                "technician",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Reviews for a technician",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Warranty",
+      "item": [
+        {
+          "name": "Warranty certificate for a job",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/warranty-records/job/:jobId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "warranty-records",
+                "job",
+                ":jobId"
+              ],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": "{{jobId}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Warranty certificate for a job"
+          }
+        },
+        {
+          "name": "Get a warranty record",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/warranty-records/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "warranty-records",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Get a warranty record"
+          }
+        },
+        {
+          "name": "File a claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/warranty-records/:id/claims",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "warranty-records",
+                ":id",
+                "claims"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "File a claim\n\nRoles: customer",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Resolve / reject a claim",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/warranty-records/:id/claims/:claimId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "warranty-records",
+                ":id",
+                "claims",
+                ":claimId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                },
+                {
+                  "key": "claimId",
+                  "value": "{{claimId}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Resolve / reject a claim\n\nRoles: technician, service_center, admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"resolutionNote\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disputes",
+      "item": [
+        {
+          "name": "Open a dispute",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/disputes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disputes"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Open a dispute — freezes the job and escrow (multipart, optional \"evidence\")",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "repairJobId",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "reason",
+                  "type": "text",
+                  "value": "string"
+                },
+                {
+                  "key": "evidence",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin: all. Others: mine",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/disputes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disputes"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Admin: all. Others: mine"
+          }
+        },
+        {
+          "name": "Get a dispute",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/disputes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disputes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Get a dispute"
+          }
+        },
+        {
+          "name": "Rule on a dispute: release | refund | partial",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/disputes/:id/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disputes",
+                ":id",
+                "resolve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Rule on a dispute: release | refund | partial\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"release\",\n  \"refundAmount\": 1,\n  \"note\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "My notifications (?unread=true)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "unread",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "My notifications (?unread=true)"
+          }
+        },
+        {
+          "name": "Mark all as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Mark all as read"
+          }
+        },
+        {
+          "name": "Mark one as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Mark one as read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Dashboard analytics\n\nRoles: admin"
+          }
+        },
+        {
+          "name": "Payout queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/withdrawals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "withdrawals"
+              ],
+              "variable": [],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Payout queue\n\nRoles: admin"
+          }
+        },
+        {
+          "name": "Mark a payout paid / rejected (rejected refunds the wallet)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/withdrawals/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "withdrawals",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{id}}"
+                }
+              ],
+              "query": []
+            },
+            "description": "Mark a payout paid / rejected (rejected refunds the wallet)\n\nRoles: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"paid\",\n  \"note\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Run the escrow auto-release sweep now",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/run-auto-release",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "run-auto-release"
+              ],
+              "variable": [],
+              "query": []
+            },
+            "description": "Run the escrow auto-release sweep now\n\nRoles: admin"
+          }
+        }
+      ]
+    }
+  ]
+}
