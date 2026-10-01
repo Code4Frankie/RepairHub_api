@@ -30,3 +30,6 @@ const start = async () => {
 
 process.on('unhandledRejection', (err) => { console.error('Unhandled rejection:', err); });
 start().catch((err) => { console.error('Failed to start server:', err); process.exit(1); });
+
+
+//enty point for the RepairHub API server. Connects to MongoDB, starts the Express app, and sets up a periodic sweep to auto-release escrow payments for completed jobs where the customer has not responded. Also handles graceful shutdown on termination signals and logs unhandled promise rejections.
