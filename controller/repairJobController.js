@@ -92,14 +92,14 @@ export const updateJobStatus = asyncHandler(async (req, res) => {
 
 // POST /api/repair-jobs/:id/confirm  (customer: "Confirm satisfaction") -> releases escrow (FR-13/14)
 export const confirmCompletion = asyncHandler(async (req, res) => {
-    const job = await RepairJob.findById(req.params.id);
-    if (!job) throw notFound('Repair job not found');
-    if (!isCustomerOf(job, req.user)) throw forbidden('Only the customer can confirm completion');
-    if (job.status !== 'completed') throw conflict('The technician has not marked this job complete yet');
+  const job = await RepairJob.findById(req.params.id);
+  if (!job) throw notFound('Repair job not found');
+  if (!isCustomerOf(job, req.user)) throw forbidden('Only the customer can confirm completion');
+  if (job.status !== 'completed') throw conflict('The technician has not marked this job complete yet');
 
-    const settled = await settleJob(job._id);
-    if (!settled) throw conflict('This job has already been settled or has no payment to release');
+  const settled = await settleJob(job._id);
+  if (!settled) throw conflict('This job has already been settled or has no payment to release');
 
-    await RepairJob.updateOne({ _id: job._id }, { customerConfirmedAt: new Date() });
-    return ok(res, await RepairJob.findById(job._id), 'Payment released to the technician');
+  await RepairJob.updateOne({ _id: job._id }, { customerConfirmedAt: new Date() });
+  return ok(res, await RepairJob.findById(job._id), 'Payment released to the technician');
 });
