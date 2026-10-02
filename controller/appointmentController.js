@@ -86,3 +86,21 @@ export const rescheduleAppointment = asyncHandler(async (req, res) => {
   return ok(res, appointment, 'Appointment rescheduled');
 });
 
+// PATCH /api/appointments/:id/cancel — before work starts. Escrowed money is refunded in full.
+export const cancelAppointment = asyncHandler(async (req, res) => {
+  const { appointment, job } = await loadForParticipant(req);
+  if (['cancelled', 'completed'].includes(appointment.status)) throw conflict(`Appointment is already ${appointment.status}`);
+  if (!['accepted', 'diagnosing', 'on_hold'].includes(job.status)) throw conflict('Work has started — open a dispute instead of cancelling');
+
+  appointment.status = 'cancelled';
+  await appointment.save();
+
+  job.status = 'cancelled';
+  job.statusHistory.push({ status: 'cancelled', note: req.body.reason || 'Appointment cancelled', by: req.user._id });
+  await job.save();
+  if (job.payment.status === 'held') await refundEscrow(job._id);
+
+  await RepairRequest.findByIdAndUpdate(job.repairRequestId, { status: 'cancelled' });
+  await notifyUser(otherParty(job, req.user), 'appointment', 'The appointment was cancelled', job._id);
+  return ok(res, appointment, 'Appointment cancelled');
+});
