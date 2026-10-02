@@ -7,4 +7,4 @@ cloudinary.config({
 });
 
 export default cloudinary;
-git add config/cloudinary.js
+// git add config/cloudinary.js
