@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 const objectId = Joi.string().custom((v, helpers) =>
   mongoose.isValidObjectId(v) && String(v).length === 24 ? v : helpers.error('any.invalid')
-, 'ObjectId');
+  , 'ObjectId');
 
 // Nigerian mobile: 0803..., 0703..., +234803... (also tolerates spaces/dashes)
 const phone = Joi.string()
