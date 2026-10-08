@@ -1,6 +1,10 @@
 // Creates (or promotes) the first admin account. Admins can never self-register via the API.
 //   ADMIN_EMAIL=you@company.com ADMIN_PASSWORD='a-strong-password' npm run seed:admin
 import 'dotenv/config';
+import dns from 'node:dns';
+if (process.env.DNS_SERVERS) {
+  dns.setServers(process.env.DNS_SERVERS.split(',').map((s) => s.trim()));
+}
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import User from '../model/userModel.js';
