@@ -35,6 +35,30 @@ export const createReview = asyncHandler(async (req, res) => {
   return created(res, review, 'Review submitted');
 });
 
+// POST /api/reviews/:id/reply  — the technician who did the job, their service center, or an admin.
+export const replyToReview = asyncHandler(async (req, res) => {
+  const review = await Review.findById(req.params.id);
+  if (!review) throw notFound('Review not found');
+  const job = await RepairJob.findById(review.repairJobId);
+  if (!job) throw notFound('Repair job not found');
+
+  const isTech = String(job.technicianUserId) === String(req.user._id);
+  let isCenter = false;
+  if (job.serviceCenterId && !isTech) {
+    const center = await ServiceCenterProfile.findById(job.serviceCenterId);
+    isCenter = !!center && String(center.userId) === String(req.user._id);
+  }
+  if (req.user.role !== 'admin' && !isTech && !isCenter) {
+    throw forbidden('Only the technician who did the job, their service center, or an admin can reply');
+  }
+
+  review.reply = req.body.reply;
+  review.repliedAt = new Date();
+  await review.save();
+  await notifyUser(job.customerUserId, 'review', 'The technician replied to your review', review._id);
+  return ok(res, review, 'Reply posted');
+});
+
 // GET /api/reviews/technician/:id  (public)
 export const getReviewsForTechnician = asyncHandler(async (req, res) => {
   const pg = parsePagination(req.query);

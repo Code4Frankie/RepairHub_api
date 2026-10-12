@@ -33,6 +33,8 @@ export const routes = [
   R('post', '/users/login', 'Users', 'Login → JWT', { auth: false, body: { email: 'string!', password: 'string!' }, example: { email: 'ada@example.com', password: 'password123' }, saveToken: true }),
   R('get', '/users/me', 'Users', 'Current user'),
   R('post', '/users/change-password', 'Users', 'Change password', { body: { currentPassword: 'string!', newPassword: 'string!' } }),
+  R('post', '/users/forgot-password', 'Users', 'Request a password-reset token (1h expiry). The token is returned for the app to present — no SMTP service yet', { auth: false, body: { email: 'string!' }, example: { email: 'ada@example.com' } }),
+  R('post', '/users/reset-password', 'Users', 'Redeem the reset token with a new password', { auth: false, body: { token: 'string!', newPassword: 'string!' }, example: { token: '<token from forgot-password>', newPassword: 'new-password123' } }),
   R('get', '/users', 'Users', 'List users', { roles: ['admin'], query: { role: 'string', status: 'string', q: 'string', ...PAGE } }),
   R('get', '/users/{id}', 'Users', 'Get a user (self or admin)'),
   R('patch', '/users/{id}', 'Users', 'Update name/phone (self or admin)', { body: { fullName: 'string', phone: 'string' } }),
@@ -65,7 +67,7 @@ export const routes = [
   R('patch', '/service-categories/{id}', 'Categories', 'Update / deactivate category', { roles: ['admin'], body: { name: 'string', parentCategory: 'string', isActive: 'boolean' } }),
 
   // ---- Repair flow
-  R('post', '/repair-requests', 'Repair Requests', 'Create request (multipart; media field "media", ≤6 files)', { roles: ['customer'], multipart: { serviceCategoryId: 'string!', itemType: 'string!', problemDescription: 'string!', brandModel: 'string', urgency: ['low', 'normal', 'urgent'], address: 'string', location: 'string', media: 'file' } }),
+  R('post', '/repair-requests', 'Repair Requests', 'Create request (multipart; media field "media", ≤6 files)', { roles: ['customer'], multipart: { serviceCategoryId: 'string!', itemType: 'string!', problemDescription: 'string!', brandModel: 'string', urgency: ['low', 'normal', 'urgent'], preferredDate: 'string', preferredTime: 'string', serviceMode: ['home', 'shop'], address: 'string', location: 'string', media: 'file' } }),
   R('get', '/repair-requests', 'Repair Requests', 'Customers: my requests. Providers: open job board. Admin: all', { query: { status: 'string', serviceCategoryId: 'string', lng: 'number', lat: 'number', radiusKm: 'number', ...PAGE } }),
   R('get', '/repair-requests/{id}', 'Repair Requests', 'Get a request'),
   R('patch', '/repair-requests/{id}/cancel', 'Repair Requests', 'Cancel (owner, before booking)', { roles: ['customer'] }),
@@ -81,7 +83,7 @@ export const routes = [
   R('patch', '/appointments/{id}/cancel', 'Appointments', 'Cancel before work starts — held escrow is refunded to the wallet', { body: { reason: 'string' } }),
   R('get', '/repair-jobs', 'Repair Jobs', 'My jobs', { query: { status: 'string', ...PAGE } }),
   R('get', '/repair-jobs/{id}', 'Repair Jobs', 'Job tracking detail (+ counterpart contact)'),
-  R('patch', '/repair-jobs/{id}/status', 'Repair Jobs', 'Advance status (diagnosing → awaiting_parts → in_progress → quality_check → ready → completed; on_hold). Needs payment first', { roles: ['technician', 'service_center'], body: { status: ['diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed'], note: 'string' }, example: { status: 'in_progress', note: 'Started repair' } }),
+  R('patch', '/repair-jobs/{id}/status', 'Repair Jobs', 'Advance status (booked → on_the_way → diagnosing → awaiting_parts → in_progress → quality_check → ready → completed; on_hold). Optional "media" files (multipart) upload progress photos. Needs payment first', { roles: ['technician', 'service_center'], multipart: { status: ['on_the_way', 'diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed'], note: 'string', media: 'file' }, example: { status: 'in_progress', note: 'Started repair' } }),
   R('post', '/repair-jobs/{id}/confirm', 'Repair Jobs', 'Customer confirms satisfaction → releases escrow', { roles: ['customer'] }),
 
   // ---- Money
@@ -97,6 +99,7 @@ export const routes = [
 
   // ---- After the repair
   R('post', '/reviews', 'Reviews', 'Review a completed job (once)', { roles: ['customer'], body: { repairJobId: 'string!', rating: 'integer!', tags: 'array', comment: 'string' }, example: { repairJobId: '<repairJobId>', rating: 5, tags: ['On time', 'Professional'], comment: 'Great work' } }),
+  R('post', '/reviews/{id}/reply', 'Reviews', 'The technician (or their service center / an admin) replies to a review', { body: { reply: 'string!' }, example: { reply: 'Thank you, Ada!' } }),
   R('get', '/reviews/technician/{id}', 'Reviews', 'Reviews for a technician', { auth: false, query: PAGE }),
   R('get', '/warranty-records/job/{jobId}', 'Warranty', 'Warranty certificate for a job'),
   R('get', '/warranty-records/{id}', 'Warranty', 'Get a warranty record'),

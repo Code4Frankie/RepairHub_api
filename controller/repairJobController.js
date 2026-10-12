@@ -6,6 +6,7 @@ import User from '../model/userModel.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok } from '../utils/apiResponse.js';
 import { conflict, forbidden, notFound } from '../utils/ApiError.js';
+import { uploadManyToCloudinary } from '../utils/cloudinaryUpload.js';
 import { assertJobParticipant, isCustomerOf, isProviderOf } from '../services/access.js';
 import { notifyUser } from '../services/notificationService.js';
 import { issueWarranty } from '../services/warrantyService.js';
@@ -15,7 +16,8 @@ import { pageMeta, parsePagination } from '../utils/paginate.js';
 // Allowed moves. `completed` is reachable from any "work done" stage so simple repairs
 // don't have to click through every step.
 const TRANSITIONS = {
-    accepted: ['diagnosing', 'in_progress', 'on_hold'],
+    accepted: ['on_the_way', 'diagnosing', 'in_progress', 'on_hold'],
+    on_the_way: ['diagnosing', 'in_progress', 'on_hold'],
     diagnosing: ['awaiting_parts', 'in_progress', 'on_hold'],
     awaiting_parts: ['in_progress', 'on_hold'],
     in_progress: ['quality_check', 'awaiting_parts', 'on_hold', 'ready', 'completed'],
@@ -23,7 +25,7 @@ const TRANSITIONS = {
     ready: ['completed'],
     on_hold: ['diagnosing', 'in_progress'],
 };
-const PROGRESS = { accepted: 0, diagnosing: 10, awaiting_parts: 30, on_hold: undefined, in_progress: 50, quality_check: 80, ready: 90, completed: 100 };
+const PROGRESS = { accepted: 0, on_the_way: 5, diagnosing: 10, awaiting_parts: 30, on_hold: undefined, in_progress: 50, quality_check: 80, ready: 90, completed: 100 };
 const NEEDS_PAYMENT = ['in_progress', 'quality_check', 'ready', 'completed'];
 
 // GET /api/repair-jobs?status=  (mine)
@@ -52,6 +54,7 @@ export const getRepairJobById = asyncHandler(async (req, res) => {
 });
 
 // PATCH /api/repair-jobs/:id/status  (the provider side: technician, their center)
+// Accepts multipart (optional "media" files, e.g. progress photos) or plain JSON.
 export const updateJobStatus = asyncHandler(async (req, res) => {
     const { status, note } = req.body;
     const job = await RepairJob.findById(req.params.id);
@@ -67,8 +70,11 @@ export const updateJobStatus = asyncHandler(async (req, res) => {
         throw conflict('Work cannot begin until the customer has paid (escrow) or chosen pay-on-delivery');
     }
 
+    const mediaUrls = req.files?.length ? await uploadManyToCloudinary(req.files, 'repair-jobs') : [];
+
     job.status = status;
     if (PROGRESS[status] !== undefined) job.progress = PROGRESS[status];
+    if (mediaUrls.length) job.mediaUrls.push(...mediaUrls);
     job.statusHistory.push({ status, note, by: req.user._id });
     if (status === 'in_progress' && !job.startedAt) {
         job.startedAt = new Date();

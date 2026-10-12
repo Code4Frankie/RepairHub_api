@@ -16,6 +16,27 @@ describe('UAT-002 — Repair request creation & visibility', () => {
     expect(rr.location.coordinates).toEqual([3.3792, 6.5244]);
   });
 
+  test('a request carries structured preferred date / time / service mode', async () => {
+    const admin = await h.createAdmin();
+    const c = await h.registerUser('customer');
+    const cat = await h.createCategory(admin);
+    const rr = await api().post('/api/repair-requests').set(auth(c))
+      .field('serviceCategoryId', cat._id).field('itemType', 'Laptop')
+      .field('problemDescription', 'Keyboard keys are stuck after a water spill')
+      .field('location', JSON.stringify({ lng: 3.3792, lat: 6.5244 }))
+      .field('preferredDate', 'Mon 20 Oct').field('preferredTime', '2:00 pm').field('serviceMode', 'home');
+    expect(rr.status).toBe(201);
+    expect(rr.body.data.preferredDate).toBe('Mon 20 Oct');
+    expect(rr.body.data.preferredTime).toBe('2:00 pm');
+    expect(rr.body.data.serviceMode).toBe('home');
+
+    const bad = await api().post('/api/repair-requests').set(auth(c))
+      .field('serviceCategoryId', cat._id).field('itemType', 'Laptop')
+      .field('problemDescription', 'Keyboard keys are stuck after a water spill')
+      .field('serviceMode', 'castle');
+    expect(bad.status).toBe(400);
+  });
+
   test('a technician cannot create a request; invalid input is rejected', async () => {
     const admin = await h.createAdmin();
     const t = await h.registerUser('technician');

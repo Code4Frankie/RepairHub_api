@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'node:crypto';
 import User from '../model/userModel.js';
 import CustomerProfile from '../model/customerProfileModel.js';
 import TechnicianProfile from '../model/technicianProfileModel.js';
@@ -76,6 +77,39 @@ export const changePassword = asyncHandler(async (req, res) => {
   user.passwordHash = await bcrypt.hash(req.body.newPassword, ROUNDS());
   await user.save();
   return ok(res, null, 'Password changed');
+});
+
+// POST /api/users/forgot-password  — self-service password reset (FR: gap that /forgot-password
+// screen fills). Issues a one-time token that expires in 1 hour. The mobile app is the delivery
+// channel for now (no SMTP service yet), so the token is returned for the app to present.
+// When an email service is added, send the reset link instead.
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  // Same response whether or not the email exists — do not leak which accounts are registered.
+  if (!user || user.status !== 'active') return ok(res, { sent: true }, 'If that email exists, a reset token was issued');
+
+  const token = crypto.randomBytes(32).toString('hex');
+  user.passwordResetHash = crypto.createHash('sha256').update(token).digest('hex');
+  user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
+  await user.save();
+  return ok(res, { sent: true, resetToken: token, expiresInMinutes: 60 }, 'Password reset token issued');
+});
+
+// POST /api/users/reset-password  { token, newPassword } — redeems the token.
+export const resetPassword = asyncHandler(async (req, res) => {
+  const hash = crypto.createHash('sha256').update(req.body.token).digest('hex');
+  const user = await User.findOne({ passwordResetHash: hash }).select('+passwordResetHash');
+  if (!user) throw unauthorized('Invalid or expired reset token');
+  if (user.status !== 'active') throw forbidden('Account suspended. Contact support.');
+  if (!user.passwordResetExpires || user.passwordResetExpires.getTime() < Date.now()) {
+    await User.updateOne({ _id: user._id }, { $unset: { passwordResetHash: 1, passwordResetExpires: 1 } });
+    throw unauthorized('This reset token has expired. Request a new one.');
+  }
+  user.passwordHash = await bcrypt.hash(req.body.newPassword, ROUNDS());
+  user.passwordResetHash = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  return ok(res, null, 'Password reset. Log in with your new password.');
 });
 
 // GET /api/users  (admin)  ?role=&status=&q=&page=&limit=

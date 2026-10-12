@@ -9,6 +9,8 @@ const reviewSchema = new mongoose.Schema(
     rating: { type: Number, min: 1, max: 5, required: true },
     tags: [{ type: String, trim: true }], // e.g. "On time", "Professional"
     comment: { type: String, trim: true, maxlength: 1000 },
+    reply: { type: String, trim: true, maxlength: 1000 }, // technician's / owner's reply
+    repliedAt: { type: Date },
   },
   { timestamps: true }
 );
