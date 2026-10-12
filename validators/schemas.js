@@ -24,6 +24,14 @@ export const register = Joi.object({
   businessName: Joi.string().trim().max(150), // service_center only
 });
 export const login = Joi.object({ email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(), password: Joi.string().required() });
+export const verifySend = Joi.object({
+  email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(),
+  channel: Joi.string().valid('email', 'phone').required(),
+});
+export const verifyConfirm = Joi.object({
+  email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(),
+  code: Joi.string().pattern(/^\d{6}$/).message('code must be the 6-digit code we sent').required(),
+});
 export const updateUser = Joi.object({ fullName: Joi.string().trim().min(2).max(100), phone }).min(1);
 export const changePassword = Joi.object({ currentPassword: Joi.string().required(), newPassword: Joi.string().min(8).max(128).required() });
 export const forgotPassword = Joi.object({ email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required() });

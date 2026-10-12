@@ -15,7 +15,9 @@ const unique = () => `${Date.now()}${counter++}`;
 export const auth = (u) => ({ Authorization: `Bearer ${u.token}` });
 export const api = () => request(app);
 
-// Register through the real endpoint (roles: customer | technician | service_center).
+// Register through the real endpoint (roles: customer | technician | service_center), then confirm the
+// email and log in — exactly what the app does. New accounts start unverified, so the token only
+// exists after verification; `res` is the raw registration response for assertions about sign-up.
 export const registerUser = async (role = 'customer', overrides = {}) => {
   const id = unique();
   const payload = {
@@ -27,7 +29,11 @@ export const registerUser = async (role = 'customer', overrides = {}) => {
     ...(role === 'service_center' ? { businessName: overrides.businessName || `Shop ${id}` } : {}),
   };
   const res = await request(app).post('/api/users/register').send(payload);
-  return { user: res.body.data?.user, token: res.body.data?.token, res, payload };
+  if (res.status !== 201) return { user: res.body.data?.user, token: undefined, res, payload };
+  const sent = await request(app).post('/api/users/verify/send').send({ email: payload.email, channel: 'email' });
+  await request(app).post('/api/users/verify/confirm').send({ email: payload.email, code: sent.body.data?.code });
+  const login = await request(app).post('/api/users/login').send({ email: payload.email, password: payload.password });
+  return { user: login.body.data?.user, token: login.body.data?.token, res, payload };
 };
 
 // Admins can't self-register, so fixtures create them directly (same as scripts/seedAdmin.js).

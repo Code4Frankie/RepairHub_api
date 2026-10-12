@@ -86,20 +86,61 @@ console.log('\n[infra]');
 }
 
 // ---------------------------------------------------------------- password reset
-console.log('\n[password reset]');
+console.log('\n[sign-up verification & password reset]');
 let cust, tech, center, techProfileId, centerId;
 {
+  // Register creates an UNVERIFIED account and no session: the person confirms an email address OR a
+  // phone number with a 6-digit code, then logs in.
   const reg = (role, extra = {}) => call('POST', '/users/register', { body: { fullName: `E2E ${role}`, email: `${role}@e2e.test`, phone: '08031234567', password: 'password123', role, ...extra } });
   const cr = await reg('customer'), tr = await reg('technician'), sr = await reg('service_center', { businessName: 'E2E Gadget Hub' });
-  cust = cr.json.data; tech = tr.json.data; center = sr.json.data;
-  check('register customer / technician / service_center all return tokens', !!(cust?.token && tech?.token && center?.token),
-    `cust=${cr.status} tech=${tr.status} center=${sr.status} :: ${JSON.stringify([cr.json, tr.json, sr.json]).slice(0, 400)}`);
-  if (!cust?.token || !tech?.token || !center?.token) {
-    console.log(`\nABORT: registration failed (customer=${cr.status}, technician=${tr.status}, center=${sr.status})`);
+  check('register customer / technician / service_center all succeed', [cr.status, tr.status, sr.status].every((s) => s === 201), `cust=${cr.status} tech=${tr.status} center=${sr.status}`);
+  check('register does not hand out a session token', !cr.json?.data?.token && !tr.json?.data?.token && !sr.json?.data?.token);
+  check('new accounts start unverified', cr.json?.data?.user?.isVerified === false && tr.json?.data?.user?.isVerified === false);
+  if (cr.status !== 201 || tr.status !== 201 || sr.status !== 201) {
+    console.log(`\nABORT: registration failed (customer=${cr.status}, technician=${tr.status}, center=${sr.status}) :: ${JSON.stringify([cr.json, tr.json, sr.json]).slice(0, 400)}`);
     server.close(); await mongoose.disconnect(); await mongo.stop();
     process.exit(2);
   }
 
+  const blocked = await call('POST', '/users/login', { body: { email: 'customer@e2e.test', password: 'password123' } });
+  check('login is refused until the account is verified (403 + flag)', blocked.status === 403 && blocked.json?.errors?.verificationRequired === true, `status=${blocked.status}`);
+
+  // The person chooses the channel: email for the customer, phone for the technician.
+  const sendCust = await call('POST', '/users/verify/send', { body: { email: 'customer@e2e.test', channel: 'email' } });
+  check('verify/send issues a 6-digit email code', sendCust.status === 200 && sendCust.json?.data?.sent === true && /^\d{6}$/.test(sendCust.json?.data?.code || ''));
+  const sendTech = await call('POST', '/users/verify/send', { body: { email: 'technician@e2e.test', channel: 'phone' } });
+  check('verify/send issues a phone code on request', sendTech.status === 200 && sendTech.json?.data?.channel === 'phone' && /^\d{6}$/.test(sendTech.json?.data?.code || ''));
+  const sendCenter = await call('POST', '/users/verify/send', { body: { email: 'service_center@e2e.test', channel: 'email' } });
+
+  const ghostSend = await call('POST', '/users/verify/send', { body: { email: 'ghost@e2e.test', channel: 'email' } });
+  check('verify/send is neutral for unknown emails (no code leaked)', ghostSend.status === 200 && ghostSend.json?.data?.sent === true && !ghostSend.json?.data?.code);
+  const badChannel = await call('POST', '/users/verify/send', { body: { email: 'customer@e2e.test', channel: 'carrier-pigeon' } });
+  check('verify/send rejects an unknown channel (400)', badChannel.status === 400);
+
+  const wrong = await call('POST', '/users/verify/confirm', { body: { email: 'customer@e2e.test', code: '000000' } });
+  check('verify/confirm rejects a wrong code (401)', wrong.status === 401, `status=${wrong.status}`);
+  const malformed = await call('POST', '/users/verify/confirm', { body: { email: 'customer@e2e.test', code: 'abc' } });
+  check('verify/confirm rejects a malformed code (400)', malformed.status === 400);
+
+  const okCust = await call('POST', '/users/verify/confirm', { body: { email: 'customer@e2e.test', code: sendCust.json?.data?.code } });
+  check('verify/confirm activates the customer', okCust.status === 200 && okCust.json?.data?.verified === true);
+  await call('POST', '/users/verify/confirm', { body: { email: 'technician@e2e.test', code: sendTech.json?.data?.code } });
+  await call('POST', '/users/verify/confirm', { body: { email: 'service_center@e2e.test', code: sendCenter.json?.data?.code } });
+
+  const reLogin = await call('POST', '/users/login', { body: { email: 'customer@e2e.test', password: 'password123' } });
+  check('verified customer can log in and gets a token', reLogin.status === 200 && !!reLogin.json?.data?.token);
+  const techLogin = await call('POST', '/users/login', { body: { email: 'technician@e2e.test', password: 'password123' } });
+  const centerLogin = await call('POST', '/users/login', { body: { email: 'service_center@e2e.test', password: 'password123' } });
+  check('verified technician & center can log in', !!techLogin.json?.data?.token && !!centerLogin.json?.data?.token);
+  cust = reLogin.json?.data; tech = techLogin.json?.data; center = centerLogin.json?.data;
+  if (!cust?.token || !tech?.token || !center?.token) {
+    console.log('\nABORT: verification login failed');
+    server.close(); await mongoose.disconnect(); await mongo.stop();
+    process.exit(2);
+  }
+}
+console.log('\n[password reset]');
+{
   const forgot = await call('POST', '/users/forgot-password', { body: { email: 'customer@e2e.test' } });
   check('forgot-password issues a token for a known email', forgot.status === 200 && forgot.json?.data?.sent === true && !!forgot.json?.data?.resetToken);
   const resetTok = forgot.json?.data?.resetToken;
@@ -231,7 +272,11 @@ let reviewId;
   const reply = await call('POST', `/reviews/${reviewId}/reply`, { token: tech.token, body: { reply: 'Thank you, glad it helped!' } });
   check('technician can reply once', reply.status === 200 && reply.json?.data?.reply === 'Thank you, glad it helped!' && !!reply.json?.data?.repliedAt);
 
-  const stranger = (await call('POST', '/users/register', { body: { fullName: 'E2E Stranger', email: 'stranger@e2e.test', phone: '08031234567', password: 'password123', role: 'customer' } })).json.data;
+  // A registered outsider: register → verify → log in, then try to reply.
+  await call('POST', '/users/register', { body: { fullName: 'E2E Stranger', email: 'stranger@e2e.test', phone: '08031234567', password: 'password123', role: 'customer' } });
+  const strangerSend = await call('POST', '/users/verify/send', { body: { email: 'stranger@e2e.test', channel: 'email' } });
+  await call('POST', '/users/verify/confirm', { body: { email: 'stranger@e2e.test', code: strangerSend.json?.data?.code } });
+  const stranger = (await call('POST', '/users/login', { body: { email: 'stranger@e2e.test', password: 'password123' } })).json.data;
   const strangerReply = await call('POST', `/reviews/${reviewId}/reply`, { token: stranger.token, body: { reply: 'nope' } });
   check('outsiders cannot reply (403)', strangerReply.status === 403);
 

@@ -16,6 +16,13 @@ const userSchema = new mongoose.Schema(
     // Password reset (self-service). Only the SHA-256 hash of the token is stored; expires in 1h.
     passwordResetHash: { type: String, select: false },
     passwordResetExpires: { type: Date },
+    // Account verification. A new sign-up confirms an email address OR a phone number with a 6-digit
+    // code before they can log in. Only the SHA-256 hash of the code is stored; expires in 10 minutes.
+    // Default true so accounts created before verification existed are not locked out.
+    isVerified: { type: Boolean, default: true },
+    verificationCodeHash: { type: String, select: false },
+    verificationExpires: { type: Date },
+    verificationChannel: { type: String, enum: ['email', 'phone'] },
   },
   { timestamps: true }
 );
