@@ -1,5 +1,6 @@
 import Dispute from '../model/disputeModel.js';
 import RepairJob from '../model/repairJobModel.js';
+import RepairRequest from '../model/repairRequestModel.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { created, ok } from '../utils/apiResponse.js';
 import { badRequest, conflict, forbidden, notFound } from '../utils/ApiError.js';
@@ -86,6 +87,10 @@ export const resolveDispute = asyncHandler(async (req, res) => {
   if (job.status === 'completed' && !job.completedAt) job.completedAt = new Date();
   job.statusHistory.push({ status: job.status, note: `Dispute resolved: ${decision}`, by: req.user._id });
   await job.save();
+
+  // Keep the repair request in sync: a refund closes the request, otherwise it is completed.
+  // (Previously the request could stay "in_progress" while its job was cancelled/refunded.)
+  await RepairRequest.updateOne({ _id: job.repairRequestId }, { status: job.status === 'cancelled' ? 'cancelled' : 'completed' });
 
   dispute.resolution = { decision: isEscrow || job.payment.status === 'cash_settled' ? decision : 'none', refundAmount, note, resolvedBy: req.user._id, resolvedAt: new Date() };
   await dispute.save();

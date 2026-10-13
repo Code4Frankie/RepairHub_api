@@ -7,12 +7,22 @@ afterAll(disconnectTestDB);
 
 // UAT-001 — registration & auth (FR-1, FR-2, FR-3)
 describe('UAT-001 — Account registration & auth', () => {
-  test('registering a customer returns a JWT and never leaks the password hash', async () => {
-    const { res } = await h.registerUser('customer');
+  test('registering creates an unverified account (no JWT) and never leaks the password hash', async () => {
+    const payload = { fullName: 'Ada Obi', email: 'signup@example.com', phone: '08031234567', password: 'password123', role: 'customer' };
+    const res = await api().post('/api/users/register').send(payload);
     expect(res.status).toBe(201);
-    expect(res.body.data.token).toBeDefined();
+    expect(res.body.data.token).toBeUndefined();
     expect(res.body.data.user.role).toBe('customer');
+    expect(res.body.data.user.isVerified).toBe(false);
     expect(JSON.stringify(res.body)).not.toMatch(/passwordHash|password_hash/);
+    // Logging in is refused until the email/phone is confirmed...
+    const blocked = await api().post('/api/users/login').send({ email: payload.email, password: payload.password });
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.errors.verificationRequired).toBe(true);
+    // ...and confirming the code mints the session.
+    const sent = await api().post('/api/users/verify/send').send({ email: payload.email, channel: 'email' });
+    await api().post('/api/users/verify/confirm').send({ email: payload.email, code: sent.body.data.code });
+    expect((await api().post('/api/users/login').send({ email: payload.email, password: payload.password })).body.data.token).toBeDefined();
   });
 
   test('anyone can NOT self-register as admin (privilege escalation blocked)', async () => {

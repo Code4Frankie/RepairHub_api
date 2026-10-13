@@ -17,15 +17,25 @@ const page = { page: Joi.number().integer().min(1), limit: Joi.number().integer(
 // ---- auth / users
 export const register = Joi.object({
   fullName: Joi.string().trim().min(2).max(100).required(),
-  email: Joi.string().trim().lowercase().email().required(),
+  email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(),
   phone,
   password: Joi.string().min(8).max(128).required(),
   role: Joi.string().valid('customer', 'technician', 'service_center').required(),
   businessName: Joi.string().trim().max(150), // service_center only
 });
-export const login = Joi.object({ email: Joi.string().trim().lowercase().email().required(), password: Joi.string().required() });
+export const login = Joi.object({ email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(), password: Joi.string().required() });
+export const verifySend = Joi.object({
+  email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(),
+  channel: Joi.string().valid('email', 'phone').required(),
+});
+export const verifyConfirm = Joi.object({
+  email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required(),
+  code: Joi.string().pattern(/^\d{6}$/).message('code must be the 6-digit code we sent').required(),
+});
 export const updateUser = Joi.object({ fullName: Joi.string().trim().min(2).max(100), phone }).min(1);
 export const changePassword = Joi.object({ currentPassword: Joi.string().required(), newPassword: Joi.string().min(8).max(128).required() });
+export const forgotPassword = Joi.object({ email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required() });
+export const resetPassword = Joi.object({ token: Joi.string().trim().min(32).max(128).required(), newPassword: Joi.string().min(8).max(128).required() });
 export const userList = Joi.object({ role: Joi.string().valid('customer', 'technician', 'service_center', 'admin'), status: Joi.string().valid('active', 'suspended'), q: Joi.string().trim().max(100), ...page });
 export const userStatus = Joi.object({ status: Joi.string().valid('active', 'suspended').required() });
 
@@ -72,7 +82,7 @@ export const centerUpdate = Joi.object({
   serviceCategoryIds: Joi.array().items(objectId).max(30),
 }).min(1);
 export const centerSearch = Joi.object({ serviceCategoryId: objectId, lng: Joi.number().min(-180).max(180), lat: Joi.number().min(-90).max(90), radiusKm: Joi.number().min(1).max(200), ...page }).and('lng', 'lat');
-export const addTeamMember = Joi.object({ email: Joi.string().trim().lowercase().email().required() });
+export const addTeamMember = Joi.object({ email: Joi.string().trim().lowercase().email({ tlds: { allow: false } }).required() });
 
 // ---- categories
 export const categoryCreate = Joi.object({ name: Joi.string().trim().min(2).max(80).required(), parentCategory: Joi.string().trim().max(80).allow(null) });
@@ -86,6 +96,10 @@ export const repairRequestCreate = Joi.object({
   problemDescription: Joi.string().trim().min(10).max(2000).required(),
   urgency: Joi.string().valid('low', 'normal', 'urgent'),
   address: Joi.string().trim().max(300),
+  // Structured scheduling preferences so quotes/jobs can be matched on them (not just free text).
+  preferredDate: Joi.string().trim().max(60),
+  preferredTime: Joi.string().trim().max(60),
+  serviceMode: Joi.string().valid('home', 'shop'),
   // multipart sends location as a JSON string; accept either form
   location: Joi.alternatives().try(point, Joi.string().custom((v, h) => {
     try { const o = JSON.parse(v); const { error } = point.validate(o); return error ? h.error('any.invalid') : o; } catch { return h.error('any.invalid'); }
@@ -123,10 +137,10 @@ export const cancelBody = Joi.object({ reason: Joi.string().trim().max(500) });
 
 // ---- jobs / payments
 export const jobStatus = Joi.object({
-  status: Joi.string().valid('diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed').required(),
+  status: Joi.string().valid('on_the_way', 'diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed').required(),
   note: Joi.string().trim().max(500),
 });
-export const jobList = Joi.object({ status: Joi.string().valid('accepted', 'diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed', 'disputed', 'cancelled'), ...page });
+export const jobList = Joi.object({ status: Joi.string().valid('accepted', 'on_the_way', 'diagnosing', 'awaiting_parts', 'in_progress', 'quality_check', 'ready', 'on_hold', 'completed', 'disputed', 'cancelled'), ...page });
 export const payJob = Joi.object({ repairJobId: objectId.required(), method: Joi.string().valid('paystack', 'wallet', 'cash').required() });
 export const topup = Joi.object({ amount: Joi.number().integer().min(100).max(5000000).required() });
 export const withdraw = Joi.object({
@@ -144,6 +158,7 @@ export const reviewCreate = Joi.object({
   tags: Joi.array().items(Joi.string().trim().max(40)).max(8),
   comment: Joi.string().trim().max(1000),
 });
+export const reviewReply = Joi.object({ reply: Joi.string().trim().min(1).max(1000).required() });
 export const warrantyClaim = Joi.object({ description: Joi.string().trim().min(5).max(1000).required() });
 export const claimResolve = Joi.object({ status: Joi.string().valid('resolved', 'rejected').required(), resolutionNote: Joi.string().trim().max(500) });
 export const disputeCreate = Joi.object({ repairJobId: objectId.required(), reason: Joi.string().trim().min(10).max(2000).required() });

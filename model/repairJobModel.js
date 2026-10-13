@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 export const JOB_STATUSES = [
   'accepted',
+  'on_the_way',
   'diagnosing',
   'awaiting_parts',
   'in_progress',
@@ -31,6 +32,7 @@ const repairJobSchema = new mongoose.Schema(
     status: { type: String, enum: JOB_STATUSES, default: 'accepted' },
     progress: { type: Number, default: 0, min: 0, max: 100 },
     statusBeforeDispute: { type: String },
+    mediaUrls: [{ type: String }], // Cloudinary photo/video URLs from technician status updates
     statusHistory: [
       {
         _id: false,

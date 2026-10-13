@@ -1,15 +1,45 @@
 import 'dotenv/config';
+import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import app from './app.js';
 import { connectDB } from './config/db.js';
 import { validateEnv } from './config/env.js';
 import { autoReleaseDue } from './services/escrowService.js';
+import { seedCategoriesDB } from './scripts/seedCategories.js';
+import ServiceCategory from './model/serviceCategoryModel.js';
+import User from './model/userModel.js';
 
 validateEnv();
 const PORT = process.env.PORT || 5000;
 
+/** A brand-new database comes up ready to serve: launch categories are seeded, and — when
+ *  ADMIN_EMAIL + ADMIN_PASSWORD are configured — an admin account is created so the team can
+ *  log in and verify technicians and centers. Idempotent; safe to run on any boot. */
+const bootstrapSeed = async () => {
+  // The app's screens are driven by categories (Smartphones, Laptops, …). Without them, requests
+  // and jobs have nothing to attach to, which looks like "requests don't save" to customers.
+  if (!(await ServiceCategory.countDocuments())) {
+    const r = await seedCategoriesDB();
+    console.log(`Seeded ${r.created} service categories (${r.total} total)`);
+  }
+  const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME = 'RepairHub Admin' } = process.env;
+  if (ADMIN_EMAIL && ADMIN_PASSWORD && ADMIN_PASSWORD.length >= 10) {
+    const email = ADMIN_EMAIL.toLowerCase().trim();
+    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
+    const existing = await User.findOne({ email });
+    if (existing) {
+      existing.role = 'admin'; existing.status = 'active'; existing.passwordHash = passwordHash;
+      await existing.save();
+    } else {
+      await User.create({ fullName: ADMIN_NAME, email, passwordHash, role: 'admin' });
+    }
+    console.log('Admin account ready');
+  }
+};
+
 const start = async () => {
   await connectDB();
+  await bootstrapSeed();
   const server = app.listen(PORT, () => console.log(`RepairHub API running on port ${PORT}`));
 
   // Escrow auto-release sweep (customer silence after completion => pay the technician).

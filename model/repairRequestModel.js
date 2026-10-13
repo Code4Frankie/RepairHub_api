@@ -8,6 +8,11 @@ const repairRequestSchema = new mongoose.Schema(
     brandModel: { type: String, trim: true },
     problemDescription: { type: String, required: true, trim: true },
     urgency: { type: String, enum: ['low', 'normal', 'urgent'], default: 'normal' },
+    // Structured scheduling preferences (preferredDate/preferredTime are display strings
+    // e.g. "Mon 20 Oct" / "2:00 pm" — the same values the customer sees).
+    preferredDate: { type: String, trim: true },
+    preferredTime: { type: String, trim: true },
+    serviceMode: { type: String, enum: ['home', 'shop'], default: null },
     mediaUrls: [{ type: String }], // Cloudinary photo/video URLs
     address: { type: String, trim: true },
     location: {

@@ -1,32 +1,55 @@
-// Seeds the launch service categories. Safe to run more than once (it never creates duplicates).
-//   npm run seed:categories
-// Reads MONGO_URI from .env, or from the environment when running against production.
+// Seeds the launch categories into MongoDB. Idempotent — run it any time, on any database:
+//   MONGO_URI=... npm run seed:categories
+// Only inserts categories that don't already exist, so it is safe on the live (Render) DB.
 import 'dotenv/config';
 import dns from 'node:dns';
-import mongoose from 'mongoose';
-import ServiceCategory from '../model/serviceCategoryModel.js';
-
-// Optional: some networks cannot resolve Atlas "mongodb+srv" addresses. Set DNS_SERVERS=8.8.8.8,1.1.1.1 to fix.
 if (process.env.DNS_SERVERS) {
   dns.setServers(process.env.DNS_SERVERS.split(',').map((s) => s.trim()));
 }
+import mongoose from 'mongoose';
+import { pathToFileURL } from 'node:url';
+import ServiceCategory from '../model/serviceCategoryModel.js';
 
-const CATEGORIES = [
-  ['Phones', null], ['Screen replacement', 'Phones'], ['Battery replacement', 'Phones'],
-  ['Laptops', null], ['Screen & keyboard', 'Laptops'], ['Motherboard & chip-level', 'Laptops'], ['Software & virus removal', 'Laptops'],
-  ['Televisions', null], ['Generators', null], ['Air conditioners', null],
-  ['Refrigerators & freezers', null], ['Washing machines', null], ['Gaming consoles', null], ['Printers', null],
+// The 5 categories the app runs at launch are active; the rest show as "Coming soon".
+export const CATEGORIES = [
+  { name: 'Smartphones', isActive: true },
+  { name: 'Laptops', isActive: true },
+  { name: 'Tablets', isActive: true },
+  { name: 'Desktops', isActive: true },
+  { name: 'Printers', isActive: true },
+  { name: 'TVs', isActive: false },
+  { name: 'Refrigerators', isActive: false },
 ];
 
-if (!process.env.MONGO_URI) {
-  console.error('MONGO_URI is not set');
-  process.exit(1);
-}
+// Upserts every category by its unique name. An existing row is only given an active flag when
+// the seed would activate it — a manual deactivation is never overridden by re-running the seed.
+export const seedCategoriesDB = async () => {
+  let created = 0, activated = 0;
+  for (const c of CATEGORIES) {
+    const existing = await ServiceCategory.findOne({ name: c.name });
+    if (existing) {
+      if (c.isActive && existing.isActive !== c.isActive) {
+        existing.isActive = true;
+        await existing.save();
+        activated++;
+      }
+      continue;
+    }
+    await ServiceCategory.create({ name: c.name, isActive: c.isActive });
+    created++;
+  }
+  return { created, activated, total: await ServiceCategory.countDocuments() };
+};
 
-await mongoose.connect(process.env.MONGO_URI);
-for (const [name, parentCategory] of CATEGORIES) {
-  await ServiceCategory.updateOne({ name }, { $setOnInsert: { name, parentCategory, isActive: true } }, { upsert: true });
+// CLI entry — only when executed directly (tests import the exported functions instead).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const { MONGO_URI } = process.env;
+  if (!MONGO_URI) {
+    console.error('Set MONGO_URI');
+    process.exit(1);
+  }
+  await mongoose.connect(MONGO_URI);
+  const result = await seedCategoriesDB();
+  console.log(`Categories seeded: ${result.created} created, ${result.activated} activated, ${result.total} total.`);
+  await mongoose.disconnect();
 }
-const active = await ServiceCategory.countDocuments({ isActive: true });
-console.log(`Seeded ${CATEGORIES.length} categories. Active categories in this database: ${active}`);
-await mongoose.disconnect();

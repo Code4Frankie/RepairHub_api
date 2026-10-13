@@ -39,6 +39,19 @@ describe('UAT-005 — Repair status tracking', () => {
     expect((await h.setStatus(technician, job._id, 'in_progress')).status).toBe(409); // completed is terminal
   });
 
+  test('"on the way" is a real status: booked -> on_the_way -> in_progress', async () => {
+    const { technician, job } = await h.buildPaidJob();
+    const r = await h.setStatus(technician, job._id, 'on_the_way', 'Leaving the workshop now');
+    expect(r.status).toBe(200);
+    const after = await api().get(`/api/repair-jobs/${job._id}`).set(auth(technician));
+    expect(after.body.data.status).toBe('on_the_way');
+    expect(after.body.data.progress).toBe(5);
+    expect(after.body.data.statusHistory.at(-1).note).toBe('Leaving the workshop now');
+    expect((await h.setStatus(technician, job._id, 'in_progress')).status).toBe(200);
+    // on_the_way is only reachable from booked — not backwards from later stages
+    expect((await h.setStatus(technician, job._id, 'on_the_way')).status).toBe(409);
+  });
+
   test('only the assigned provider can update status — not the customer, not another technician', async () => {
     const { admin, customer, job } = await h.buildPaidJob();
     const other = await h.registerUser('technician');

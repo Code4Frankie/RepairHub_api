@@ -44,6 +44,9 @@ describe('Disputes & escrow arbitration', () => {
     const j = await getJob(customer, job._id);
     expect(j.payment.status).toBe('refunded');
     expect(j.status).toBe('cancelled');
+    // The repair request must not stay "in_progress" after a refund ruling.
+    const RepairRequest = (await import('../model/repairRequestModel.js')).default;
+    expect((await RepairRequest.findById(job.repairRequestId)).status).toBe('cancelled');
     expect((await getWallet(customer.user._id)).balance).toBe(20000);
     expect((await getWallet(technician.user._id))?.balance || 0).toBe(0);
     expect((await api().patch(`/api/disputes/${d._id}/resolve`).set(auth(admin)).send({ decision: 'release' })).status).toBe(409);
@@ -55,6 +58,8 @@ describe('Disputes & escrow arbitration', () => {
     await api().patch(`/api/disputes/${d._id}/resolve`).set(auth(admin)).send({ decision: 'release' });
     expect((await getWallet(technician.user._id)).balance).toBe(18000);
     expect((await getJob(customer, job._id)).status).toBe('completed');
+    const RepairRequest = (await import('../model/repairRequestModel.js')).default;
+    expect((await RepairRequest.findById(job.repairRequestId)).status).toBe('completed');
   });
 
   test('admin resolves: partial refund splits the money correctly', async () => {

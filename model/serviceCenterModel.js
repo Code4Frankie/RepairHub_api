@@ -15,6 +15,7 @@ const serviceCenterSchema = new mongoose.Schema(
     coverageRadiusKm: { type: Number, default: 15, min: 1, max: 200 },
     workingHours: { type: mongoose.Schema.Types.Mixed, default: {} },
     serviceCategoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServiceCategory' }],
+    areas: { type: [String], default: [] },
     ratingAvg: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
     ratingSum: { type: Number, default: 0 },
